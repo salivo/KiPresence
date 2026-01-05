@@ -1,0 +1,85 @@
+import signal
+import subprocess
+import sys
+import time
+
+from pypresence import Presence
+from pypresence.types import ActivityType
+
+from kicad_connect import get_opened_editor
+
+client_id = "1337552550454366250"
+RPC = Presence(client_id)  # Initialize the client class
+
+global_run = True
+
+
+def shutdown(signum, frame):
+    global global_run
+    if global_run:
+        global_run = False
+        print("Stopping service...")
+    else:
+        sys.exit(0)
+
+
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
+
+
+def is_kicad_running():
+    result = subprocess.run(["pgrep", "-x", "kicad"], stdout=subprocess.DEVNULL)
+    return result.returncode == 0
+
+
+def poll_kicad_is_running():
+    running = False
+    while global_run:
+        if not running:
+            if is_kicad_running():
+                print("KiCad Started")
+                running = True
+                try:
+                    RPC.connect()
+                except Exception as e:
+                    print(f"Error connecting to Discord RPC: {e}")
+                    running = False
+                continue
+            else:
+                print("KiCad is not running")
+                try:
+                    RPC.clear()
+                except Exception:
+                    pass
+        else:
+            try:
+                editor = get_opened_editor()
+                if editor["name"] == "Main menu":
+                    RPC.update(
+                        state="Developing plajtime_v2",
+                        details="KiCad",
+                        name="KiCad",
+                        activity_type=ActivityType.COMPETING,
+                        large_image="icon_kicad",
+                        large_text="In main menu",
+                    )
+                else:
+                    RPC.update(
+                        state="Developing plajtime_v2",
+                        details="KiCad",
+                        name="KiCad",
+                        activity_type=ActivityType.COMPETING,
+                        small_image="icon_kicad",
+                        small_text="KiCad",
+                        large_image=editor["icon"],
+                        large_text=editor["name"],
+                    )
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                running = False
+                continue
+        time.sleep(15)
+
+
+if __name__ == "__main__":
+    poll_kicad_is_running()
