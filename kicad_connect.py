@@ -24,6 +24,9 @@ class KiCadConnect:
         self.kicad = KiCad()
         self.saved_project_name = None
 
+    def reconnect(self):
+        self.kicad = KiCad()
+
     def editor_is_open(self, doc_type: DocumentType.ValueType):
         try:
             self.kicad.get_open_documents(doc_type)
