@@ -6,10 +6,12 @@ import time
 from pypresence import Presence
 from pypresence.types import ActivityType
 
-from kicad_connect import get_opened_editor
+from kicad_connect import KiCadConnect
 
 client_id = "1337552550454366250"
 RPC = Presence(client_id)  # Initialize the client class
+
+kicad_connect = KiCadConnect()
 
 global_run = True
 
@@ -53,10 +55,14 @@ def poll_kicad_is_running():
                     pass
         else:
             try:
-                editor = get_opened_editor()
+                editor = kicad_connect.get_opened_editor()
+                project_name = kicad_connect.get_project_name()
+                project_string = ""
+                if project_name:
+                    project_string = f"Developing: {project_name}"
                 if editor["name"] == "Main menu":
                     RPC.update(
-                        state="Developing plajtime_v2",
+                        state=project_string,
                         details="KiCad",
                         name="KiCad",
                         activity_type=ActivityType.COMPETING,
@@ -65,7 +71,7 @@ def poll_kicad_is_running():
                     )
                 else:
                     RPC.update(
-                        state="Developing plajtime_v2",
+                        state=project_string,
                         details="KiCad",
                         name="KiCad",
                         activity_type=ActivityType.COMPETING,
