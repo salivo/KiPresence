@@ -24,7 +24,7 @@ makepkg -si
 ```
 4. Enable the systemd service:
  ```bash
- sudo systemctl enable --now kipresence.service
+ sudo systemctl enable --user --now kipresence.service
  ```
 
 ## Usage
